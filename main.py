@@ -1,26 +1,24 @@
 import telebot
 from telebot import types
 import os
-from data_functions import getData
-from google_module import GoogleDocs, GoogleDocsRead, GoogleSheets
-import img_download as img_d
+from google_module import GoogleSheets
 
 
 #не забуд прописать в терминал команду pip install pytelegrambotapi (если у тебя мак то pip3, а не pip)
 
 logger = telebot.logger
-linkURLSheets = 'https://docs.google.com/spreadsheets/d/13mPMefBJ4gjLF2R6ONaOmJB6dsoM1ylWzg7cKQwh9tk/edit#gid=0'
-sheet_data = GoogleSheets(linkURLSheets)
+
 
 HEROKU = os.environ.get('HEROKU')
 if HEROKU == "True":
     TOKEN = os.environ.get('TOKEN')
+    LINK = os.environ.get('LINK')
 else:
-    import config
-    TOKEN = config.TOKEN
-
+    import CONFIG
+    TOKEN = CONFIG.TOKEN
+    LINK = CONFIG.LINK
 bot = telebot.TeleBot(TOKEN)
-
+sheet_data = GoogleSheets(LINK)
 
 #это глвное меню бота (вызывается из базы данных, формируется на основе ее значений)
 #функция заполняет клавиатуру которая генерируется из базы данных (только главное меню)
@@ -28,10 +26,12 @@ bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    sheet_data.add_user(user_name=message.chat.username)
+    #sheet_data.add_user(user_name=message.chat.username)
+    #text = sheet_data.get_sheets_values()
     bot.send_message(message.chat.id, "Бот запущен", disable_notification=True)
-    main_menu_select_step(message)
 
+
+'''
 @bot.message_handler(content_types=['text'])
 def main_menu_select_step(message):
     data = getData('t1')
@@ -240,6 +240,7 @@ def final_process_select_step(message, data):
             bot.reply_to(message, 'Такого раздела пока нет')
             main_menu_select_step(message)
 
+'''
 
 if __name__ == "__main__":
     try:
