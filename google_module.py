@@ -126,7 +126,6 @@ class GoogleSheets:
                                             body={'values': [answer]})
             request.execute()
 
-
 if __name__ == "__main__":
     linkURLSheets = 'https://docs.google.com/spreadsheets/d/1TGeDND5G9c53K1xTKZ97gFwYoO1vyBsfiX0aljO-8Ss/edit#gid=0'
     data = GoogleSheets(linkURLSheets)

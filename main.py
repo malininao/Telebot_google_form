@@ -25,7 +25,7 @@ bot = telebot.TeleBot(TOKEN)
 #функция заполняет клавиатуру которая генерируется из базы данных (только главное меню)
 #telebot.logger.setLevel(logging.DEBUG)
 
-@bot.message_handler(commands=['start'])
+@bot.message_handler(commands=['start','Перезапуск'])
 def start(message):
     answers = []
     sheet_data = GoogleSheets(LINK)
@@ -86,7 +86,9 @@ def get_total_list(message, answers, answers_question, question, sheet_data):
 
     print(total_list)
     sheet_data.add_answer(message.chat.username, total_list)
-
+    bot.send_message(message.chat.id, "Данные записаны. Спасибо что прошли опрос. В будущем для прохождения нового"
+                                      " опроса, или перепрохождения текущего нажмите /start в меню выбора команд",
+                     disable_notification=True)
 
 
 if __name__ == "__main__":
