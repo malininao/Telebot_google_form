@@ -41,10 +41,19 @@ credentional = ServiceAccountCredentials.from_json_keyfile_name(
 httpAuth = credentional.authorize(httplib2.Http())
 services_sheet = googleapiclient.discovery.build('sheets', 'v4', http=httpAuth)
 
-def date():
-    date = f'{datetime.now().hour}:{datetime.now().minute}:{datetime.now().second} {datetime.now().date().day}.' \
-           f'{datetime.now().date().month}.{datetime.now().date().year}'
-    return date
+
+class DateTime:
+
+    @staticmethod
+    def date():
+        date = f'{datetime.now().date().day}.{datetime.now().date().month}.{datetime.now().date().year}'
+        return date
+
+    @staticmethod
+    def time():
+        time = f'{datetime.now().time().hour}:{datetime.now().time().minute}:{datetime.now().time().second}'
+        return time
+
 
 class GoogleSheets:
 
@@ -57,8 +66,12 @@ class GoogleSheets:
 
     def get_sheets_values(self):
         sheet = services_sheet.spreadsheets()
-        result = sheet.values().get(spreadsheetId=self.get_sheets_from_url(), range='База ответов!A2:F').execute()
+        result = sheet.values().get(spreadsheetId=self.get_sheets_from_url(), range='База ответов!A2:ZZ').execute()
         values = result.get('values', [])
+        result_structure = sheet.values().get(spreadsheetId=self.get_sheets_from_url(), range='Структура!A2:ZZ2').execute()
+        structure = result_structure.get('values', [])
+        result_question = sheet.values().get(spreadsheetId=self.get_sheets_from_url(), range='Вопросы!A2:ZZ').execute()
+        question = result_question.get('values', [])
         users_data = []
         for row in values:
             users_parameters = {
@@ -74,11 +87,11 @@ class GoogleSheets:
                 users_parameters['date'] = row[3]
             users_data.append(users_parameters)
 
-        return users_data
+        return users_data, structure, question
 
     def get_user_data(self, username):
         sheets_values = self.get_sheets_values()
-        users_parameters = sheets_values
+        users_parameters = sheets_values[0]
         user_name_list = []
         for item in users_parameters:
             user_name_list.append(item['user_name'])
@@ -86,46 +99,32 @@ class GoogleSheets:
             index = user_name_list.index(username)
             return users_parameters[index], int(index), user_name_list
         except:
+            print(user_name_list)
             return "Пользователя нет в базе", user_name_list
 
     def add_answer(self, user_name, answers):
         sheet = services_sheet.spreadsheets()
         user_data = self.get_user_data(user_name)
+        user_name_list = [user_name]
+        answer = user_name_list + answers
         if user_data[0] == "Пользователя нет в базе":
             if 'Empty value' in user_data[1]:
                 index = user_data[1].index('Empty value') + 2
                 print(f'Пользователь записан в строку: {index}')
             else:
-                index = len(self.get_sheets_values()) + 2
+                index = len(self.get_sheets_values()[0]) + 2
                 print(f'Пользователь записан в строку: {index}')
-            answer = [user_name]
-            user
             request = sheet.values().update(spreadsheetId=self.get_sheets_from_url(), range=f'База ответов!A{index}',
                                             valueInputOption='USER_ENTERED',
                                             body={'values': [answer]})
             request.execute()
         else:
             print(f"Такой пользователь уже создан. Строка {self.get_user_data(user_name)[1] + 2}")
-
-    def add_interaction_point(self, user_name, effective):
-        self.add_user(user_name)
-        sheet = services_sheet.spreadsheets()
-        user_data = self.get_user_data(user_name)
-        last_count_request = user_data[0]['number_requests']
-        last_count_effective_request = user_data[0]['effective_requests']
-        new_count_request = int(last_count_request) + 1
-        if effective is True:
-            new_count_effective_request = int(last_count_effective_request) + 1
-        else:
-            new_count_effective_request = int(last_count_effective_request)
-        date = f'{datetime.now().date().day}.{datetime.now().date().month}.{datetime.now().date().year}'
-        time = f'{datetime.now().time().hour}:{datetime.now().time().minute}:{datetime.now().time().second}'
-        values = [[new_count_request, new_count_effective_request, time, date]]
-        index = user_data[1] + 2
-        request = sheet.values().update(spreadsheetId=self.get_sheets_from_url(), range=f'База ответов!C{index}',
-                                        valueInputOption='USER_ENTERED',
-                                        body={'values': values})
-        request.execute()
+            index = self.get_user_data(user_name)[1] + 2
+            request = sheet.values().update(spreadsheetId=self.get_sheets_from_url(), range=f'База ответов!A{index}',
+                                            valueInputOption='USER_ENTERED',
+                                            body={'values': [answer]})
+            request.execute()
 
 
 if __name__ == "__main__":
@@ -133,8 +132,9 @@ if __name__ == "__main__":
     data = GoogleSheets(linkURLSheets)
     values = GoogleSheets(linkURLSheets).get_sheets_values()
     user = data.get_user_data("человек 7")
-    answer =  ['Виктор', "Почта", date(), '18', "Кашку", "Бражку"]
-    data.add_answer('человек 29', answer)
+    print(user)
+    #answer =  ['Виктор', "Почта", f'{DateTime.time()} {DateTime.date()}', '18', "Кашку", "Бражку"]
+    #data.add_answer('человек 31', answer)
 
     print(values[0])
     print(user)
