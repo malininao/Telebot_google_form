@@ -25,7 +25,7 @@ bot = telebot.TeleBot(TOKEN)
 #функция заполняет клавиатуру которая генерируется из базы данных (только главное меню)
 #telebot.logger.setLevel(logging.DEBUG)
 
-@bot.message_handler(commands=['start','Перезапуск'])
+@bot.message_handler(commands=['start', 'reload'])
 def start(message):
     answers = []
     sheet_data = GoogleSheets(LINK)
@@ -58,11 +58,16 @@ def question_moving(message, questions, iterator_question, answers, answers_ques
     answers_question.append(message.text)
     if iterator_question == len(questions[0])-1:
         bot.send_message(message.chat.id, questions[0][iterator_question], disable_notification=True)
+
         del answers_question[0]
         print(answers_question)
+
+        get_result_message(message, questions[0], answers_question)
+
         question = questions[0]
-        del question[len(question)-1]
-        print(question)
+        del question[len(question) - 1]
+        #print(question)
+
         get_total_list(message, answers, answers_question, question, sheet_data)
     else:
         counter_text = f'Вопрос {iterator_question+1} из {len(questions[0])-1}'
@@ -70,6 +75,15 @@ def question_moving(message, questions, iterator_question, answers, answers_ques
         msg = bot.send_message(message.chat.id, questions[0][iterator_question], disable_notification=True)
         bot.register_next_step_handler(msg, question_moving, questions, iterator_question+1, answers, answers_question,
                                        sheet_data)
+
+
+def get_result_message(message, list_one, list_two):
+    united_string = ''
+    for i in range(len(list_two)):
+        united_string = united_string + f'{i+1}. {list_one[i]}: {list_two[i]}\n'
+    print(united_string)
+    bot.send_message(message.chat.id, f'Ваш ответ:\n{united_string}', disable_notification=True)
+
 
 
 def get_total_list(message, answers, answers_question, question, sheet_data):
@@ -83,7 +97,6 @@ def get_total_list(message, answers, answers_question, question, sheet_data):
     time_date = f'{time} {date}'
     time_date = [time_date]
     total_list = answers + time_date + answer_list
-
     print(total_list)
     sheet_data.add_answer(message.chat.username, total_list)
     bot.send_message(message.chat.id, "Данные записаны. Спасибо что прошли опрос. В будущем для прохождения нового"
