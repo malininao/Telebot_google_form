@@ -30,7 +30,7 @@ HEROKU = os.environ.get('HEROKU')
 if HEROKU == "True":
     CREDENTIALS_FILE = create_keyfile_dict()
 else:
-    CREDENTIALS_FILE = './/osipia-eac8c331dd32.json'
+    CREDENTIALS_FILE = './/bimbot-316407-d1dbeda69dde.json'
 
 scope = ['https://www.googleapis.com/auth/drive',
          'https://www.googleapis.com/auth/spreadsheets']

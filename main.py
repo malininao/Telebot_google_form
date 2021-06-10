@@ -62,13 +62,13 @@ def question_moving(message, questions, iterator_question, answers, answers_ques
         del answers_question[0]
         print(answers_question)
 
-        get_result_message(message, questions[0], answers_question)
+
 
         question = questions[0]
         del question[len(question) - 1]
         #print(question)
 
-        get_total_list(message, answers, answers_question, question, sheet_data)
+        choose_end_step(message, answers, answers_question, question, sheet_data)
     else:
         counter_text = f'Вопрос {iterator_question+1} из {len(questions[0])-1}'
         bot.send_message(message.chat.id, counter_text, disable_notification=True)
@@ -77,18 +77,27 @@ def question_moving(message, questions, iterator_question, answers, answers_ques
                                        sheet_data)
 
 
-def get_result_message(message, list_one, list_two):
+def get_result_message(list_one, list_two):
     united_string = ''
-    for i in range(len(list_two)):
+    for i, v in enumerate(list_two):
         united_string = united_string + f'{i+1}. {list_one[i]}: {list_two[i]}\n'
     print(united_string)
-    bot.send_message(message.chat.id, f'Ваш ответ:\n{united_string}', disable_notification=True)
+    return united_string
 
 
+
+def choose_end_step(message, answers, answers_question, question, sheet_data):
+    markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True, row_width=2)
+    itembtn_one = types.KeyboardButton("Отправить")
+    itembtn_two = types.KeyboardButton("Редактировать")
+    markup.add(itembtn_one, itembtn_two)
+    result = get_result_message(question, answers_question)
+    msg = bot.send_message(message.chat.id, f'Ваш ответ:\n{result}', reply_markup=markup, disable_notification=True)
+    bot.register_next_step_handler(msg, get_total_list, answers, answers_question, question, sheet_data)
 
 def get_total_list(message, answers, answers_question, question, sheet_data):
     answer_list = []
-    for i in range(len(answers_question)):
+    for i, v in enumerate(answers_question):
         answer_list.append(question[i])
         answer_list.append(answers_question[i])
     print(answer_list)
@@ -98,7 +107,7 @@ def get_total_list(message, answers, answers_question, question, sheet_data):
     time_date = [time_date]
     total_list = answers + time_date + answer_list
     print(total_list)
-    sheet_data.add_answer(message.chat.username, total_list)
+    #sheet_data.add_answer(message.chat.username, total_list)
     bot.send_message(message.chat.id, "Данные записаны. Спасибо что прошли опрос. В будущем для прохождения нового"
                                       " опроса, или перепрохождения текущего нажмите /start в меню выбора команд",
                      disable_notification=True)
