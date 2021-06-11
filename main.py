@@ -33,7 +33,8 @@ def start(message):
     structure = sheet_values[1]
     questions = sheet_values[2]
     text_1 = structure[0][0] % (message.chat.username)
-    bot.send_message(message.chat.id, text_1, disable_notification=True)
+    markup = types.ReplyKeyboardRemove()
+    bot.send_message(message.chat.id, text_1, disable_notification=True, reply_markup=markup)
     iterator = 1
     structure_moving(message, structure, questions, iterator, answers, sheet_data)
 
@@ -97,7 +98,19 @@ def process_select_step(message, answers, answers_question, question, sheet_data
         bot.send_message(message.chat.id, "Записываю результаты...", disable_notification=True, reply_markup=markup)
         get_total_list(message, answers, answers_question, question, sheet_data)
     if message.text == "Редактировать":
-        pass
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=5)
+        indexs = enumerate(answers_question)
+        item_btns = []
+        for i in indexs:
+            item_btn = types.KeyboardButton(i[0]+1)
+            #item_btns.append(item_btn)
+            markup.add(item_btn)
+
+        bot.send_message(message.chat.id, "Какой ответ нужно отредактировать?", disable_notification=True,
+                         reply_markup=markup)
+        msg = bot.send_message(message.chat.id, 'Как только будет доступна функция отредактируется',
+                               disable_notification=True)
+        bot.register_next_step_handler(msg, start)
 
 
 def get_total_list(message, answers, answers_question, question, sheet_data):
