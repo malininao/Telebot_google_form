@@ -58,12 +58,8 @@ def question_moving(message, questions, iterator_question, answers, answers_ques
     answers_question.append(message.text)
     if iterator_question == len(questions[0])-1:
         bot.send_message(message.chat.id, questions[0][iterator_question], disable_notification=True)
-
         del answers_question[0]
         print(answers_question)
-
-
-
         question = questions[0]
         del question[len(question) - 1]
         #print(question)
@@ -85,7 +81,6 @@ def get_result_message(list_one, list_two):
     return united_string
 
 
-
 def choose_end_step(message, answers, answers_question, question, sheet_data):
     markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True, row_width=2)
     itembtn_one = types.KeyboardButton("Отправить")
@@ -93,7 +88,17 @@ def choose_end_step(message, answers, answers_question, question, sheet_data):
     markup.add(itembtn_one, itembtn_two)
     result = get_result_message(question, answers_question)
     msg = bot.send_message(message.chat.id, f'Ваш ответ:\n{result}', reply_markup=markup, disable_notification=True)
-    bot.register_next_step_handler(msg, get_total_list, answers, answers_question, question, sheet_data)
+    bot.register_next_step_handler(msg, process_select_step, answers, answers_question, question, sheet_data)
+
+
+def process_select_step(message, answers, answers_question, question, sheet_data):
+    if message.text == "Отправить":
+        markup = types.ReplyKeyboardRemove()
+        bot.send_message(message.chat.id, "Записываю результаты...", disable_notification=True, reply_markup=markup)
+        get_total_list(message, answers, answers_question, question, sheet_data)
+    if message.text == "Редактировать":
+        pass
+
 
 def get_total_list(message, answers, answers_question, question, sheet_data):
     answer_list = []
@@ -107,7 +112,9 @@ def get_total_list(message, answers, answers_question, question, sheet_data):
     time_date = [time_date]
     total_list = answers + time_date + answer_list
     print(total_list)
+
     #sheet_data.add_answer(message.chat.username, total_list)
+
     bot.send_message(message.chat.id, "Данные записаны. Спасибо что прошли опрос. В будущем для прохождения нового"
                                       " опроса, или перепрохождения текущего нажмите /start в меню выбора команд",
                      disable_notification=True)
